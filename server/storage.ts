@@ -1202,10 +1202,7 @@ export class DatabaseStorage implements IStorage {
     return compare(pin, access.pin);
   }
 
-  // Legacy method for backward compatibility
-  async getPortalAccessByAccountId(accountId: string): Promise<PortalAccess | undefined> {
-    return this.getPortalAccessByContactId(accountId);
-  }
+  // Method removed for complete migration to contactId
 
   // Dashboard data
   async getDashboardSummary(): Promise<DashboardSummary> {

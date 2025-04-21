@@ -60,17 +60,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Portal Authentication - uses PIN-based access
   app.post("/api/portal/auth", async (req, res) => {
     try {
-      const { accountIdentifier, pin } = req.body as PortalAuthRequest;
+      const { contactIdentifier, pin } = req.body as PortalAuthRequest;
 
       // Try to find contact by UID first, then by email
-      let contact = await storage.getContactByUid(accountIdentifier); // renamed from getAccountByUid
+      let contact = await storage.getContactByUid(contactIdentifier);
       if (!contact) {
-        const contacts = await storage.getContacts(); // renamed from getAccounts
-        contact = contacts.find(c => c.email === accountIdentifier);
+        const contacts = await storage.getContacts();
+        contact = contacts.find(c => c.email === contactIdentifier);
       }
 
       if (!contact) {
-        return res.status(400).json({ message: "Contact not found" }); // renamed from Account
+        return res.status(400).json({ message: "Contact not found" });
       }
 
       const isValid = await storage.validatePortalPIN(contact.id, pin);
@@ -79,14 +79,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Store contact in session
-      req.session.portalContact = contact; // renamed from portalAccount
+      req.session.portalContact = contact;
       
       res.json({ 
         success: true, 
-        contact: { // renamed from account
+        contact: {
           id: contact.id,
           name: contact.name,
-          contactUid: contact.contactUid // renamed from accountUid
+          contactUid: contact.contactUid
         } 
       });
     } catch (error) {
