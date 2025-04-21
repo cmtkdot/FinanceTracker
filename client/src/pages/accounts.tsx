@@ -26,7 +26,7 @@ export default function Accounts() {
   const fetchAccounts = async () => {
     try {
       setIsLoading(true);
-      const response = await apiRequest("GET", "/api/accounts");
+      const response = await apiRequest("GET", "/api/contacts");
       const data = await response.json();
       setAccounts(data);
     } catch (error) {
@@ -61,14 +61,14 @@ export default function Accounts() {
 
   const handleFormSuccess = () => {
     setModalOpen(false);
-    queryClient.invalidateQueries({ queryKey: ['/api/accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
     fetchAccounts();
   };
 
   const deleteAccount = async (id: string) => {
     try {
-      await apiRequest("DELETE", `/api/accounts/${id}`);
-      queryClient.invalidateQueries({ queryKey: ['/api/accounts'] });
+      await apiRequest("DELETE", `/api/contacts/${id}`);
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       toast({
         title: "Account deleted",
         description: "The account has been deleted successfully."

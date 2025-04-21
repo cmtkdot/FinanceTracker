@@ -69,7 +69,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
   useEffect(() => {
     const fetchVendors = async () => {
       try {
-        const response = await apiRequest("GET", "/api/accounts?isVendor=true");
+        const response = await apiRequest("GET", "/api/contacts?isVendor=true");
         const vendorsData = await response.json();
         setVendors(vendorsData);
       } catch (error) {

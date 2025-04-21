@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Ensure portal user is authenticated
   const isPortalAuthenticated = (req: Request, res: Response, next: Function) => {
-    if (req.session.portalAccount) {
+    if (req.session.portalContact) { // renamed from portalAccount
       return next();
     }
     res.status(401).json({ message: "Portal access unauthorized" });
@@ -128,8 +128,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Account Routes
-  app.get("/api/accounts", isAuthenticated, async (req, res) => {
+  // Contact Routes (renamed from Account Routes)
+  app.get("/api/contacts", isAuthenticated, async (req, res) => { // renamed from /api/accounts
     try {
       const { isCustomer, isVendor } = req.query;
       const filters: any = {};
@@ -142,54 +142,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filters.isVendor = isVendor === 'true';
       }
       
-      const accounts = await storage.getAccounts(
+      const contacts = await storage.getContacts( // renamed from getAccounts
         Object.keys(filters).length > 0 ? filters : undefined
       );
-      res.json(accounts);
+      res.json(contacts); // renamed from accounts
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.get("/api/accounts/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/contacts/:id", isAuthenticated, async (req, res) => { // renamed from /api/accounts/:id
     try {
-      const account = await storage.getAccountById(req.params.id);
-      if (!account) {
-        return res.status(404).json({ message: "Account not found" });
+      const contact = await storage.getContactById(req.params.id); // renamed from getAccountById
+      if (!contact) { // renamed from account
+        return res.status(404).json({ message: "Contact not found" }); // renamed from Account
       }
-      res.json(account);
+      res.json(contact); // renamed from account
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post("/api/accounts", isAuthenticated, async (req, res) => {
+  app.post("/api/contacts", isAuthenticated, async (req, res) => { // renamed from /api/accounts
     try {
-      const validatedData = insertContactSchema.parse(req.body); // renamed from insertAccountSchema
-      const account = await storage.createAccount(validatedData);
-      res.status(201).json(account);
+      const validatedData = insertContactSchema.parse(req.body);
+      const contact = await storage.createContact(validatedData); // renamed from createAccount
+      res.status(201).json(contact); // renamed from account
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
   });
 
-  app.put("/api/accounts/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/contacts/:id", isAuthenticated, async (req, res) => { // renamed from /api/accounts/:id
     try {
-      const updatedAccount = await storage.updateAccount(req.params.id, req.body);
-      if (!updatedAccount) {
-        return res.status(404).json({ message: "Account not found" });
+      const updatedContact = await storage.updateContact(req.params.id, req.body); // renamed from updateAccount
+      if (!updatedContact) { // renamed from updatedAccount
+        return res.status(404).json({ message: "Contact not found" }); // renamed from Account
       }
-      res.json(updatedAccount);
+      res.json(updatedContact); // renamed from updatedAccount
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
   });
 
-  app.delete("/api/accounts/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/contacts/:id", isAuthenticated, async (req, res) => { // renamed from /api/accounts/:id
     try {
-      const deleted = await storage.deleteAccount(req.params.id);
+      const deleted = await storage.deleteContact(req.params.id); // renamed from deleteAccount
       if (!deleted) {
-        return res.status(404).json({ message: "Account not found" });
+        return res.status(404).json({ message: "Contact not found" }); // renamed from Account
       }
       res.json({ success: true });
     } catch (error) {
@@ -619,16 +619,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Portal Routes (Customer/Vendor)
-  app.get("/api/portal/account", isPortalAuthenticated, (req, res) => {
-    res.json(req.session.portalAccount);
+  app.get("/api/portal/contact", isPortalAuthenticated, (req, res) => { // renamed from /api/portal/account
+    res.json(req.session.portalContact); // renamed from portalAccount
   });
 
   app.get("/api/portal/invoices", isPortalAuthenticated, async (req, res) => {
     try {
-      const contactId = req.session.portalAccount.id; // renamed from accountId
+      const contactId = req.session.portalContact.id; // renamed from portalAccount
       const allInvoices = await storage.getInvoices();
-      const contactInvoices = allInvoices.filter( // renamed from accountInvoices
-        (invoice) => invoice.contactId === contactId // renamed from accountId
+      const contactInvoices = allInvoices.filter(
+        (invoice) => invoice.contactId === contactId
       );
       res.json(contactInvoices);
     } catch (error) {
@@ -638,10 +638,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/portal/purchase-orders", isPortalAuthenticated, async (req, res) => {
     try {
-      const contactId = req.session.portalAccount.id; // renamed from accountId
+      const contactId = req.session.portalContact.id; // renamed from portalAccount
       const allPOs = await storage.getPurchaseOrders();
-      const contactPOs = allPOs.filter( // renamed from accountPOs
-        (po) => po.contactId === contactId // renamed from accountId
+      const contactPOs = allPOs.filter(
+        (po) => po.contactId === contactId
       );
       res.json(contactPOs);
     } catch (error) {

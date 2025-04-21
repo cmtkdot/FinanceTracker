@@ -96,7 +96,7 @@ export function InvoiceForm({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const clientsResponse = await apiRequest("GET", "/api/accounts?isCustomer=true");
+        const clientsResponse = await apiRequest("GET", "/api/contacts?isCustomer=true");
         const productsResponse = await apiRequest("GET", "/api/products");
         
         const clientsData = await clientsResponse.json();
