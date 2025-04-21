@@ -1,0 +1,41 @@
+Warning: validateDOMNesting(...): <a> cannot appear as a descendant of &lt;a&gt;.
+    at a
+    at a
+    at https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b9d8ad1:337:18
+    at div
+    at div
+    at div
+    at DashboardLayout (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/components/layout/dashboard-layout.tsx:34:35)
+    at Dashboard (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/pages/dashboard.tsx:30:21)
+    at ProtectedRoute (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/App.tsx?v=ALnZUfOERRlyRcTlPwKS0:37:38)
+    at Route (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b9d8ad1:323:16)
+    at Switch (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b9d8ad1:379:17)
+    at Router
+    at Provider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5AJU3CG7.js?v=2b9d8ad1:38:15)
+    at TooltipProvider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=2b9d8ad1:60:5)
+    at AuthProvider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/hooks/use-auth-provider.tsx:21:32)
+    at QueryClientProvider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=2b9d8ad1:2805:3)
+    at App
+    at ThemeProvider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/components/ui/theme-provider.tsx?v=ALnZUfOERRlyRcTlPwKS0:26:3)
+at a
+at a
+at https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b9d8ad1:337:18
+at div
+at div
+at div
+at DashboardLayout (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/components/layout/dashboard-layout.tsx:34:35)
+at Dashboard (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/pages/dashboard.tsx:30:21)
+at ProtectedRoute (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/App.tsx?v=ALnZUfOERRlyRcTlPwKS0:37:38)
+at Route (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b9d8ad1:323:16)
+at Switch (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b9d8ad1:379:17)
+at Router
+at Provider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5AJU3CG7.js?v=2b9d8ad1:38:15)
+at TooltipProvider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=2b9d8ad1:60:5)
+at AuthProvider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/hooks/use-auth-provider.tsx:21:32)
+at QueryClientProvider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=2b9d8ad1:2805:3)
+at App
+at ThemeProvider (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/src/components/ui/theme-provider.tsx?v=ALnZUfOERRlyRcTlPwKS0:26:3)
+at t.value (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://16e9b435-4467-4e69-bdca-a7925bd6676e-00-3r7ugi0f8jgip.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
