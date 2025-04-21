@@ -1,251 +1,175 @@
-import { ReactNode, useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { Link, useLocation } from 'wouter';
 import { 
-  BarChart, 
-  FileText, 
-  Home, 
-  Settings, 
-  ShoppingCart, 
-  Package, 
+  LayoutDashboard, 
   CreditCard, 
-  Users,
-  FileBarChart,
-  Menu,
-  LogOut,
-  ChevronLeft,
-  Sun,
-  Moon
-} from "lucide-react";
-import { useTheme } from "next-themes";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+  FileText, 
+  ShoppingCart, 
+  FileDown, 
+  FileUp, 
+  BarChart3, 
+  Users, 
+  Settings, 
+  Menu, 
+  X, 
+  LogOut 
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface DashboardLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
   title?: string;
 }
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
-  const [currentLocation] = useLocation();
-  const { theme, setTheme } = useTheme();
-  const [isThemeDark, setIsThemeDark] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [location] = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Check theme on load and on theme change
-  useEffect(() => {
-    setIsThemeDark(theme === "dark");
-  }, [theme]);
-
-  const handleThemeToggle = () => {
-    setTheme(isThemeDark ? "light" : "dark");
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: Home },
-    { href: "/invoices", label: "Invoices", icon: FileText },
-    { href: "/estimates", label: "Estimates", icon: FileText },
-    { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingCart },
-    { href: "/payments", label: "Payments", icon: CreditCard },
-    { href: "/products", label: "Products", icon: Package },
-    { href: "/accounts", label: "Accounts", icon: Users },
-    { href: "/reports", label: "Reports", icon: FileBarChart },
+    { 
+      icon: <LayoutDashboard className="w-5 h-5 mr-3" />, 
+      name: 'Dashboard', 
+      path: '/dashboard' 
+    },
+    { 
+      icon: <Users className="w-5 h-5 mr-3" />, 
+      name: 'Accounts', 
+      path: '/accounts' 
+    },
+    { 
+      icon: <ShoppingCart className="w-5 h-5 mr-3" />, 
+      name: 'Products', 
+      path: '/products' 
+    },
+    { 
+      icon: <FileDown className="w-5 h-5 mr-3" />, 
+      name: 'Estimates', 
+      path: '/estimates' 
+    },
+    { 
+      icon: <FileText className="w-5 h-5 mr-3" />, 
+      name: 'Invoices', 
+      path: '/invoices' 
+    },
+    { 
+      icon: <FileUp className="w-5 h-5 mr-3" />, 
+      name: 'Purchase Orders', 
+      path: '/purchase-orders' 
+    },
+    { 
+      icon: <CreditCard className="w-5 h-5 mr-3" />, 
+      name: 'Payments', 
+      path: '/payments' 
+    },
+    { 
+      icon: <BarChart3 className="w-5 h-5 mr-3" />, 
+      name: 'Reports', 
+      path: '/reports' 
+    },
+    { 
+      icon: <Settings className="w-5 h-5 mr-3" />, 
+      name: 'Settings', 
+      path: '/settings' 
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm lg:hidden">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <span className="ml-3 text-lg font-semibold">Financial Manager</span>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleThemeToggle}
-            >
-              {isThemeDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>John Doe</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
-      
-      {/* Mobile Sidebar */}
-      <div 
-        className={`
-          fixed inset-0 z-50 lg:hidden bg-black/50 transition-opacity
-          ${isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"}
-        `}
-        onClick={() => setIsMobileMenuOpen(false)}
-      >
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Mobile sidebar backdrop */}
+      {isSidebarOpen && (
         <div 
-          className={`
-            fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-800 overflow-y-auto transition-transform
-            ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
-          `}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="p-4 border-b flex items-center justify-between">
-            <h2 className="font-semibold text-lg">Financial Manager</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-          </div>
-          
-          <nav className="p-4 space-y-1">
-            {navItems.map((item, i) => {
-              const isActive = currentLocation === item.href || 
-                (item.href !== "/dashboard" && currentLocation.startsWith(item.href));
-              const Icon = item.icon;
-              
-              return (
-                <Link
-                  key={i}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div 
+        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg z-50 transition-transform transform lg:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:static lg:z-0`}
+      >
+        <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+          <Link href="/dashboard">
+            <a className="text-xl font-bold text-primary flex items-center">
+              <CreditCard className="w-6 h-6 mr-2" />
+              FinTrack
+            </a>
+          </Link>
+          <button 
+            className="lg:hidden text-gray-600 dark:text-gray-300" 
+            onClick={toggleSidebar}
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <nav className="p-4">
+          <ul className="space-y-2">
+            {navItems.map((item, index) => (
+              <li key={index}>
+                <Link href={item.path}>
                   <a 
-                    className={`
-                      flex items-center px-3 py-2 rounded-md text-sm font-medium
-                      ${isActive 
-                        ? "bg-primary/10 text-primary" 
-                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      }
-                    `}
+                    className={`flex items-center p-2 rounded-md w-full ${
+                      location === item.path
+                        ? 'bg-primary text-white font-medium'
+                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                    onClick={() => setIsSidebarOpen(false)}
                   >
-                    <Icon className="mr-3 h-5 w-5" />
-                    {item.label}
+                    {item.icon}
+                    {item.name}
                   </a>
                 </Link>
-              );
-            })}
-          </nav>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
+          <Link href="/logout">
+            <a className="flex items-center justify-center p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md w-full">
+              <LogOut className="w-5 h-5 mr-3" />
+              Logout
+            </a>
+          </Link>
         </div>
       </div>
 
-      <div className="flex">
-        {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 h-screen sticky top-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col h-full">
-            <div className="p-4 border-b">
-              <h1 className="text-xl font-bold">Financial Manager</h1>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="px-4 py-3 flex justify-between items-center">
+            <div className="flex items-center">
+              <button
+                className="lg:hidden text-gray-600 dark:text-gray-300 mr-2"
+                onClick={toggleSidebar}
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              {title && (
+                <h1 className="text-xl font-semibold text-gray-800 dark:text-white">{title}</h1>
+              )}
             </div>
-            
-            <nav className="p-4 space-y-1 flex-1">
-              {navItems.map((item, i) => {
-                const isActive = currentLocation === item.href || 
-                  (item.href !== "/dashboard" && currentLocation.startsWith(item.href));
-                const Icon = item.icon;
-                
-                return (
-                  <Link key={i} href={item.href}>
-                    <a 
-                      className={`
-                        flex items-center px-3 py-2 rounded-md text-sm font-medium
-                        ${isActive 
-                          ? "bg-primary/10 text-primary" 
-                          : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        }
-                      `}
-                    >
-                      <Icon className="mr-3 h-5 w-5" />
-                      {item.label}
-                    </a>
-                  </Link>
-                );
-              })}
-            </nav>
-            
-            <div className="p-4 border-t">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start px-3">
-                    <Avatar className="h-8 w-8 mr-2">
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <span>John Doe</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="cursor-pointer" onClick={handleThemeToggle}>
-                    {isThemeDark ? (
-                      <>
-                        <Sun className="mr-2 h-4 w-4" />
-                        <span>Light Mode</span>
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="mr-2 h-4 w-4" />
-                        <span>Dark Mode</span>
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Logout</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <img
+                  src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff"
+                  alt="Admin User"
+                  className="w-8 h-8 rounded-full"
+                />
+              </div>
             </div>
           </div>
-        </aside>
-        
-        {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-8">
-          {/* Title Bar */}
-          <header className="mb-8 hidden lg:block">
-            <h1 className="text-2xl font-bold">{title || "Dashboard"}</h1>
-          </header>
-          
-          {/* Page Content */}
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900">
           {children}
         </main>
       </div>

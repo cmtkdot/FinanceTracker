@@ -1,92 +1,97 @@
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/utils";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
-import { ArrowRight } from "lucide-react";
-import { Link } from "wouter";
-import { ProductWithInventory } from "@shared/types";
+import React from 'react';
+import { formatCurrency } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
+import { Link } from 'wouter';
+import { ProductWithInventory } from '@shared/types';
 
 interface InventoryStatusProps {
   products: ProductWithInventory[];
 }
 
 export function InventoryStatus({ products }: InventoryStatusProps) {
-  const getStockStatus = (product: ProductWithInventory) => {
-    const stockLevel = (product.stockAvailable || 0) / (product.reorderLevel * 2);
-    
-    if (stockLevel <= 0.1) {
-      return { label: "Critical", color: "bg-red-500" };
-    } else if (stockLevel <= 0.35) {
-      return { label: "Low Stock", color: "bg-yellow-500" };
-    } else {
-      return { label: "In Stock", color: "bg-green-500" };
-    }
-  };
-  
-  const getPercentage = (product: ProductWithInventory) => {
-    const stockLevel = (product.stockAvailable || 0) / (product.reorderLevel * 2);
-    return Math.min(Math.max(stockLevel * 100, 0), 100);
-  };
-
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">Inventory Status</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-                <TableHead className="py-3 font-medium">Product</TableHead>
-                <TableHead className="py-3 font-medium">SKU</TableHead>
-                <TableHead className="py-3 font-medium">Stock</TableHead>
-                <TableHead className="py-3 font-medium">Status</TableHead>
-                <TableHead className="py-3 font-medium">Value</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => {
-                const status = getStockStatus(product);
-                const percentage = getPercentage(product);
-                
-                return (
-                  <TableRow key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell className="text-gray-500 dark:text-gray-400">{product.sku}</TableCell>
-                    <TableCell>{product.stockAvailable || 0}</TableCell>
-                    <TableCell>
-                      <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                        <div
-                          className={`h-2.5 rounded-full ${status.color}`}
-                          style={{ width: `${percentage}%` }}
-                        ></div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatCurrency(product.stockValue || 0)}</TableCell>
-                  </TableRow>
-                );
-              })}
-              
-              {products.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-gray-500 dark:text-gray-400">
-                    No products found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-      <CardFooter className="border-t border-gray-200 dark:border-gray-700 py-3">
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle>Inventory Status</CardTitle>
         <Link href="/products">
-          <Button variant="link" size="sm" className="w-full">
-            View all products <ArrowRight className="ml-1 h-4 w-4" />
+          <Button variant="ghost" className="text-sm text-primary">
+            View all <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </Link>
-      </CardFooter>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {products && products.length > 0 ? (
+            products.map((product) => (
+              <div key={product.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-gray-200 dark:bg-gray-800 rounded flex items-center justify-center overflow-hidden">
+                    {product.publicUrlPhoto ? (
+                      <img 
+                        src={product.publicUrlPhoto} 
+                        alt={product.name} 
+                        className="h-full w-full object-cover" 
+                      />
+                    ) : (
+                      <div className="text-gray-400 text-xs">No img</div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium">{product.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      SKU: {product.sku}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-medium">
+                    {formatCurrency(product.unitPrice)}
+                  </div>
+                  {getStockBadge(product)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">No products found</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
     </Card>
   );
+}
+
+function getStockBadge(product: ProductWithInventory) {
+  const stockAvailable = product.stockAvailable || 0;
+  const reorderLevel = product.reorderLevel || 5;
+  
+  if (stockAvailable === 0) {
+    return (
+      <Badge variant="destructive" className="mt-1">
+        Out of Stock
+      </Badge>
+    );
+  } else if (stockAvailable <= reorderLevel) {
+    return (
+      <Badge 
+        variant="secondary" 
+        className="mt-1 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300"
+      >
+        Low: {stockAvailable}
+      </Badge>
+    );
+  } else {
+    return (
+      <Badge 
+        variant="secondary" 
+        className="mt-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+      >
+        In Stock: {stockAvailable}
+      </Badge>
+    );
+  }
 }

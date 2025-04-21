@@ -1,13 +1,9 @@
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { ProductWithInventory } from "@shared/types";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils";
-import { Product } from "@shared/schema";
-import { ProductWithInventory } from "@shared/types";
+import { Eye, Edit, Package } from "lucide-react";
 
 interface ProductGridProps {
   products: ProductWithInventory[];
@@ -16,111 +12,95 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products, onView, onEdit }: ProductGridProps) {
-  const getStockStatus = (product: ProductWithInventory) => {
-    const stockLevel = (product.stockAvailable || 0) / (product.reorderLevel * 2);
-    
-    if (stockLevel <= 0.1) {
-      return { label: "Critical", color: "bg-red-500 text-white" };
-    } else if (stockLevel <= 0.35) {
-      return { label: "Low Stock", color: "bg-yellow-500 text-white" };
-    } else {
-      return { label: "In Stock", color: "bg-green-500 text-white" };
-    }
-  };
-  
-  const getProgressColor = (product: ProductWithInventory) => {
-    const stockLevel = (product.stockAvailable || 0) / (product.reorderLevel * 2);
-    
-    if (stockLevel <= 0.1) {
-      return "bg-red-500";
-    } else if (stockLevel <= 0.35) {
-      return "bg-yellow-500";
-    } else {
-      return "bg-green-500";
-    }
-  };
-  
-  const getPercentage = (product: ProductWithInventory) => {
-    const stockLevel = (product.stockAvailable || 0) / (product.reorderLevel * 2);
-    return Math.min(Math.max(stockLevel * 100, 0), 100);
-  };
-
-  const getPlaceholderImage = (productName: string) => {
-    // Use a placeholder service to generate an image based on product name
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(productName)}&background=e5e7eb&color=4b5563&size=256`;
-  };
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <Package className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No products</h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          No products found that match your criteria.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      {products.map((product) => {
-        const status = getStockStatus(product);
-        const progressColor = getProgressColor(product);
-        const percentage = getPercentage(product);
-        
-        return (
-          <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow">
-            <div className="h-40 bg-gray-100 dark:bg-gray-700 relative">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {products.map((product) => (
+        <Card key={product.id} className="overflow-hidden h-full flex flex-col">
+          <div className="h-48 bg-gray-200 dark:bg-gray-800 relative flex items-center justify-center">
+            {product.publicUrlPhoto ? (
               <img
-                src={product.publicUrlPhoto || getPlaceholderImage(product.name)}
+                src={product.publicUrlPhoto}
                 alt={product.name}
-                className="object-cover w-full h-full"
+                className="h-full w-full object-cover"
               />
-              <div className="absolute top-2 right-2">
-                <Badge className={`${status.color}`}>
-                  {status.label}
-                </Badge>
-              </div>
+            ) : (
+              <Package className="h-16 w-16 text-gray-400" />
+            )}
+
+            {/* Stock Status Badge */}
+            {(product.stockAvailable === 0 || product.stockQuantity === 0) ? (
+              <Badge 
+                variant="destructive" 
+                className="absolute top-2 right-2"
+              >
+                Out of Stock
+              </Badge>
+            ) : (product.stockAvailable || 0) <= (product.reorderLevel || 5) ? (
+              <Badge 
+                variant="secondary" 
+                className="absolute top-2 right-2 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300"
+              >
+                Low Stock ({product.stockAvailable})
+              </Badge>
+            ) : (
+              <Badge 
+                variant="secondary" 
+                className="absolute top-2 right-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+              >
+                In Stock ({product.stockAvailable})
+              </Badge>
+            )}
+          </div>
+
+          <CardContent className="p-4 flex-grow">
+            <div className="mb-2 flex items-center justify-between">
+              <Badge variant="outline" className="bg-gray-100 dark:bg-gray-700 text-xs">
+                SKU: {product.sku}
+              </Badge>
             </div>
-            
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">{product.name}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{product.sku}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900 dark:text-white">{formatCurrency(product.unitPrice)}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{product.stockAvailable || 0} units</p>
-                </div>
-              </div>
-              
-              <div className="mt-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Inventory</p>
-                  <div className="w-24 mt-1">
-                    <Progress value={percentage} className={`h-1.5 ${progressColor}`} />
-                  </div>
-                </div>
-                
-                <div className="flex space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => onView(product)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => onEdit(product)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-      
-      {products.length === 0 && (
-        <div className="col-span-full flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
-          No products found. Add your first product to get started.
-        </div>
-      )}
+            <h3 className="font-semibold text-lg truncate">{product.name}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 h-10">
+              {product.description || "No description available"}
+            </p>
+            <div className="mt-2 font-medium text-lg">
+              {formatCurrency(product.unitPrice)}
+            </div>
+          </CardContent>
+
+          <CardFooter className="p-4 pt-0 border-t border-gray-200 dark:border-gray-700 mt-auto">
+            <div className="flex space-x-2 w-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => onView(product)}
+              >
+                <Eye className="h-4 w-4 mr-1" /> View
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => onEdit(product)}
+              >
+                <Edit className="h-4 w-4 mr-1" /> Edit
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+      ))}
     </div>
   );
 }

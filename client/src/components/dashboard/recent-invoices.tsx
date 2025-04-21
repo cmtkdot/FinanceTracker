@@ -1,74 +1,66 @@
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight } from "lucide-react";
-import { Link } from "wouter";
-import { InvoiceWithDetails } from "@shared/types";
+import React from 'react';
+import { formatDate, formatCurrency, getStatusColor } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
+import { Link } from 'wouter';
+
+interface Invoice {
+  id: string;
+  accountName: string;
+  amount: number;
+  date: Date;
+  dueDate: Date;
+  status: string;
+}
 
 interface RecentInvoicesProps {
-  invoices: InvoiceWithDetails[];
+  invoices: Invoice[];
 }
 
 export function RecentInvoices({ invoices }: RecentInvoicesProps) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">Recent Invoices</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-                <TableHead className="py-3 font-medium">Invoice #</TableHead>
-                <TableHead className="py-3 font-medium">Client</TableHead>
-                <TableHead className="py-3 font-medium">Amount</TableHead>
-                <TableHead className="py-3 font-medium">Status</TableHead>
-                <TableHead className="py-3 font-medium">Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <TableCell className="font-medium">{invoice.invoiceUid}</TableCell>
-                  <TableCell>{invoice.account.name}</TableCell>
-                  <TableCell>{formatCurrency(invoice.totalAmount)}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusColor(invoice.paymentStatus)}
-                    >
-                      {capitalize(invoice.paymentStatus)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-500 dark:text-gray-400">{formatDate(invoice.issueDate)}</TableCell>
-                </TableRow>
-              ))}
-              
-              {invoices.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-gray-500 dark:text-gray-400">
-                    No invoices found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-      <CardFooter className="border-t border-gray-200 dark:border-gray-700 py-3">
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle>Recent Invoices</CardTitle>
         <Link href="/invoices">
-          <Button variant="link" size="sm" className="w-full">
-            View all invoices <ArrowRight className="ml-1 h-4 w-4" />
+          <Button variant="ghost" className="text-sm text-primary">
+            View all <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </Link>
-      </CardFooter>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {invoices && invoices.length > 0 ? (
+            invoices.map((invoice) => (
+              <div key={invoice.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                <div>
+                  <p className="font-medium">{invoice.accountName}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className={getStatusColor(invoice.status)}>
+                      {invoice.status}
+                    </Badge>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Due {formatDate(invoice.dueDate, 'MMM dd')}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">{formatCurrency(invoice.amount)}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {formatDate(invoice.date, 'MMM dd, yyyy')}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">No recent invoices</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
     </Card>
   );
-}
-
-function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
 }

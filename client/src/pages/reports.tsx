@@ -8,7 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
   ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line 
 } from "recharts";
-import { DateRange } from "@/components/ui/date-range";
+import { DateRangePicker } from "@/components/ui/date-range";
 import { Download, FileText, FileBarChart, ArrowDownToLine } from "lucide-react";
 
 const COLORS = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -106,7 +106,7 @@ export default function Reports() {
             <CardTitle className="text-sm font-medium">Date Range</CardTitle>
           </CardHeader>
           <CardContent>
-            <DateRange />
+            <DateRangePicker />
           </CardContent>
         </Card>
       </div>
