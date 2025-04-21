@@ -94,9 +94,11 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         } lg:static lg:z-0`}
       >
         <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
-          <Link href="/dashboard" className="text-xl font-bold text-primary flex items-center">
-            <CreditCard className="w-6 h-6 mr-2" />
-            FinTrack
+          <Link href="/dashboard">
+            <a className="text-xl font-bold text-primary flex items-center">
+              <CreditCard className="w-6 h-6 mr-2" />
+              FinTrack
+            </a>
           </Link>
           <button 
             className="lg:hidden text-gray-600 dark:text-gray-300" 
@@ -110,17 +112,18 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
           <ul className="space-y-2">
             {navItems.map((item, index) => (
               <li key={index}>
-                <Link 
-                  href={item.path}
-                  className={`flex items-center p-2 rounded-md w-full ${
-                    location === item.path
-                      ? 'bg-primary text-white font-medium'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                  onClick={() => setIsSidebarOpen(false)}
-                >
-                  {item.icon}
-                  {item.name}
+                <Link href={item.path}>
+                  <a 
+                    className={`flex items-center p-2 rounded-md w-full ${
+                      location === item.path
+                        ? 'bg-primary text-white font-medium'
+                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    {item.icon}
+                    {item.name}
+                  </a>
                 </Link>
               </li>
             ))}
@@ -128,12 +131,11 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         </nav>
         
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
-          <Link 
-            href="/logout"
-            className="flex items-center justify-center p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md w-full"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            Logout
+          <Link href="/logout">
+            <a className="flex items-center justify-center p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md w-full">
+              <LogOut className="w-5 h-5 mr-3" />
+              Logout
+            </a>
           </Link>
         </div>
       </div>
