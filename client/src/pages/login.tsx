@@ -61,10 +61,8 @@ export default function Login() {
         description: "You have been logged in successfully.",
       });
       
-      // Use a small timeout to ensure the toast is shown before redirecting
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 500);
+      // Login function now handles the redirect to ensure session is established
+      // No need to navigate here - the login function will do it
     } catch (error) {
       console.error("Login error:", error);
       toast({

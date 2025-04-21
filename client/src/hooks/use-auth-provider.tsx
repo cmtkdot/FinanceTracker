@@ -49,19 +49,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       
+      // Use the auth route from the backend
       const response = await apiRequest("POST", "/api/auth/login", { email, password });
       const data = await response.json();
       
-      // Update the user state from the response
+      // Update the user state from the response - backend returns { user: User }
       if (data.user) {
         setUser(data.user);
-        // Immediately check auth status to ensure session is established
-        await checkAuth();
+        console.log("Login successful, user data:", data.user);
+        // Force a refresh after login to ensure all components know we are authenticated
+        setTimeout(() => window.location.href = "/dashboard", 500);
         return data.user;
       } else {
         throw new Error("Login failed: User data not received");
       }
     } catch (error) {
+      console.error("Login error details:", error);
       setError(error instanceof Error ? error : new Error("Login failed"));
       throw error;
     } finally {
