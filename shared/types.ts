@@ -1,5 +1,23 @@
 import { Product } from "./schema";
 
+export interface PortalAuthRequest {
+  accountIdentifier: string; // Email or account UID
+  pin: string;
+}
+
+export interface AccountWithBalances {
+  id: string;
+  name: string;
+  email: string;
+  accountUid: string;
+  isCustomer: boolean;
+  isVendor: boolean;
+  totalReceivable?: number;
+  totalPayable?: number;
+  lastInvoiceDate?: Date;
+  lastPaymentDate?: Date;
+}
+
 export interface ProductWithInventory extends Product {
   stockAvailable?: number | null;
   stockOnOrder?: number | null;

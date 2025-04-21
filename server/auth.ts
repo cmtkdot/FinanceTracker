@@ -18,7 +18,9 @@ declare module 'express-session' {
  * Configure passport to use local strategy
  */
 export function configurePassport() {
+  // Main admin authentication strategy
   passport.use(
+    'admin-local',
     new LocalStrategy(
       {
         usernameField: 'email',
@@ -29,17 +31,27 @@ export function configurePassport() {
           const user = await storage.getUserByEmail(email);
           
           if (!user) {
+            console.log(`Login failed: No user found with email ${email}`);
+            return done(null, false, { message: 'Invalid email or password' });
+          }
+          
+          // Only allow users with admin role to log in via this strategy
+          if (user.role !== 'admin' && user.role !== 'user') {
+            console.log(`Login failed: User ${email} is not an admin or user`);
             return done(null, false, { message: 'Invalid email or password' });
           }
           
           const passwordMatch = await compare(password, user.password);
           
           if (!passwordMatch) {
+            console.log(`Login failed: Password does not match for ${email}`);
             return done(null, false, { message: 'Invalid email or password' });
           }
           
+          console.log(`Login successful for admin user: ${email} (ID: ${user.id})`);
           return done(null, user);
         } catch (error) {
+          console.error(`Login error for ${email}:`, error);
           return done(error);
         }
       }
@@ -107,11 +119,38 @@ export function configureSession(app: any) {
 }
 
 /**
- * Middleware to ensure user is authenticated
+ * Middleware to ensure user is authenticated as admin
  */
 export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
+    // Additional check to make sure user has proper role if needed
     return next();
   }
   res.status(401).json({ message: 'Unauthorized' });
+}
+
+/**
+ * Middleware to ensure client portal user is authenticated
+ */
+export function isPortalAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (req.session && req.session.portalAccount) {
+    console.log("Portal session authenticated:", req.session.portalAccount.id);
+    return next();
+  }
+  console.log("Portal session not authenticated");
+  res.status(401).json({ message: 'Portal access unauthorized' });
+}
+
+/**
+ * Custom middleware to check the session status
+ */
+export function checkSession(req: Request, res: Response, next: NextFunction) {
+  // Log the session status for debugging
+  console.log('Session check:', {
+    authenticated: req.isAuthenticated(),
+    sessionID: req.sessionID,
+    hasSession: !!req.session,
+    user: req.user ? { id: req.user.id } : null
+  });
+  next();
 }

@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { configurePassport, configureSession, isAuthenticated } from "./auth";
+import { configurePassport, configureSession, isAuthenticated, isPortalAuthenticated, checkSession } from "./auth";
 import passport from "passport";
 import { webhookService } from "./webhooks";
 import { z } from "zod";
@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       hasPassword: !!req.body.password
     });
     
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("admin-local", (err, user, info) => {
       if (err) {
         console.error("Login error:", err);
         return res.status(500).json({ message: "Internal server error during login" });
@@ -181,13 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Ensure portal user is authenticated
-  const isPortalAuthenticated = (req: Request, res: Response, next: Function) => {
-    if (req.session.portalAccount) {
-      return next();
-    }
-    res.status(401).json({ message: "Portal access unauthorized" });
-  };
+  // Use the isPortalAuthenticated middleware imported from auth.ts
 
   // Webhook endpoint
   app.post("/api/webhook", async (req, res) => {
