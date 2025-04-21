@@ -12,7 +12,7 @@ import {
   type PortalAccess, type InsertPortalAccess
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, isNull } from "drizzle-orm";
+import { eq, and, or, desc, isNull, count, sql, not, isNotNull } from "drizzle-orm";
 import { DashboardSummary, AccountWithBalances, ProductWithInventory } from "@shared/types";
 import { createId } from '@paralleldrive/cuid2';
 import { hash, compare } from 'bcrypt';
@@ -1164,19 +1164,25 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard data
   async getDashboardSummary(): Promise<DashboardSummary> {
-    // In a real implementation, this would query materialized views
-    // For this example, we'll create a mock response with semi-realistic data
+    // Fetch real data from postgres database
     
-    // Get some base data to make it somewhat realistic
-    const [totalInvoices] = await db
-      .select({ count: invoices.id })
-      .from(invoices)
-      .count();
+    // Get counts using Drizzle ORM's count function
+    let totalInvoices = 0;
+    let totalProducts = 0;
+    let totalAccounts = 0;
     
-    const [totalProducts] = await db
-      .select({ count: products.id })
-      .from(products)
-      .count();
+    try {
+      const invoiceResult = await db.select({ count: sql`count(*)` }).from(invoices);
+      totalInvoices = Number(invoiceResult[0]?.count || 0);
+      
+      const productResult = await db.select({ count: sql`count(*)` }).from(products);
+      totalProducts = Number(productResult[0]?.count || 0);
+      
+      const accountResult = await db.select({ count: sql`count(*)` }).from(accounts);
+      totalAccounts = Number(accountResult[0]?.count || 0);
+    } catch (error) {
+      console.error("Error counting records:", error);
+    }
     
     // Currently a mock implementation - in production would use database queries
     return {
@@ -1252,8 +1258,8 @@ export class DatabaseStorage implements IStorage {
         { period: 'May', revenue: 45000, expenses: 30000, profit: 15000 },
         { period: 'Jun', revenue: 42000, expenses: 28000, profit: 14000 }
       ],
-      recentInvoices: [], // Would be populated from actual invoice data
-      inventoryStatus: [] // Would be populated from actual product data
+      recentInvoices: await this.getRecentInvoices(),
+      inventoryStatus: await this.getProductsWithInventory()
     };
   }
 
