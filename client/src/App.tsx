@@ -15,24 +15,33 @@ import Reports from "@/pages/reports";
 import Accounts from "@/pages/accounts";
 import PortalLogin from "@/pages/portal/login";
 import PortalDashboard from "@/pages/portal/index";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/hooks/use-auth-provider";
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.FC; path: string }) {
   const { user, isLoading, checkAuth } = useAuth();
   const [location, setLocation] = useLocation();
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     const verifyAuth = async () => {
-      const isAuthenticated = await checkAuth();
-      if (!isAuthenticated && !location.startsWith('/portal') && location !== '/login') {
+      try {
+        const isAuthenticated = await checkAuth();
+        setChecked(true);
+        
+        if (!isAuthenticated && !location.startsWith('/portal') && location !== '/login') {
+          setLocation('/login');
+        }
+      } catch (error) {
+        console.error("Authentication check failed:", error);
         setLocation('/login');
       }
     };
+    
     verifyAuth();
   }, [location, checkAuth, setLocation]);
 
-  if (isLoading) {
+  if (isLoading || !checked) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

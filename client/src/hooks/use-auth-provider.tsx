@@ -52,8 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await apiRequest("POST", "/api/auth/login", { email, password });
       const data = await response.json();
       
+      // Update the user state from the response
       if (data.user) {
         setUser(data.user);
+        // Immediately check auth status to ensure session is established
+        await checkAuth();
         return data.user;
       } else {
         throw new Error("Login failed: User data not received");
