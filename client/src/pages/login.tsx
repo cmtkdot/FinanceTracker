@@ -41,13 +41,24 @@ export default function Login() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
-      await apiRequest("POST", "/api/auth/login", values);
+      const response = await apiRequest("POST", "/api/auth/login", values);
+      const data = await response.json();
+      
       toast({
         title: "Login Successful",
         description: "You have been logged in successfully.",
       });
-      navigate("/dashboard");
+      
+      // Make sure we have the user data before redirecting
+      if (data.user) {
+        console.log("Successfully logged in as:", data.user.email);
+        // Use a small timeout to ensure the toast is shown before redirecting
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 500);
+      }
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login Failed",
         description: "Invalid email or password. Please try again.",

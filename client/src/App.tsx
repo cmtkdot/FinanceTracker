@@ -22,19 +22,22 @@ function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [location, setLocation] = useLocation();
 
+  // Add location to the dependency array to ensure the auth check runs when routes change
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const response = await apiRequest("GET", "/api/auth/session");
         const data = await response.json();
         setIsAuthenticated(!!data.user);
+        console.log("Auth check - authenticated:", !!data.user);
       } catch (error) {
+        console.log("Auth check - not authenticated");
         setIsAuthenticated(false);
       }
     };
     
     checkAuth();
-  }, []);
+  }, [location]); // Re-run when location changes
 
   // Loading state while checking authentication
   if (isAuthenticated === null) {
@@ -47,7 +50,11 @@ function Router() {
 
   // Redirect to login if not authenticated
   if (!isAuthenticated && location !== '/login' && !location.startsWith('/portal')) {
-    setLocation('/login');
+    console.log("Not authenticated, redirecting to login");
+    // Use setTimeout to avoid React state update during render
+    setTimeout(() => {
+      setLocation('/login');
+    }, 0);
     return null;
   }
 
