@@ -143,16 +143,16 @@ export default function Dashboard() {
             />
             <KpiCard 
               title="Accounts Receivable"
-              value={dashboardData.accountsStats.totalReceivable}
+              value={dashboardData.contactsStats.totalReceivable}
               isCurrency={true}
-              trend={dashboardData.accountsStats.totalReceivable > 0 ? "up" : "down"}
+              trend={dashboardData.contactsStats.totalReceivable > 0 ? "up" : "down"}
               change={2.8}
             />
             <KpiCard 
               title="Accounts Payable"
-              value={dashboardData.accountsStats.totalPayable}
+              value={dashboardData.contactsStats.totalPayable}
               isCurrency={true}
-              trend={dashboardData.accountsStats.totalPayable > 0 ? "up" : "down"}
+              trend={dashboardData.contactsStats.totalPayable > 0 ? "up" : "down"}
               change={1.3}
             />
             <KpiCard 

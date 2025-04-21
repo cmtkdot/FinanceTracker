@@ -1231,35 +1231,23 @@ export class DatabaseStorage implements IStorage {
     
     // Currently a mock implementation - in production would use database queries
     return {
-      kpis: {
-        totalRevenue: {
-          value: 128430.50,
-          label: "Total Revenue",
-          changePercent: 12.5,
-          changeDirection: 'up',
-          icon: 'dollar-sign'
-        },
-        accountsReceivable: {
-          value: 42150.75,
-          label: "Accounts Receivable",
-          changePercent: 8.3,
-          changeDirection: 'up',
-          icon: 'file-invoice-dollar'
-        },
-        accountsPayable: {
-          value: 31875.24,
-          label: "Accounts Payable",
-          changePercent: 5.2,
-          changeDirection: 'down',
-          icon: 'shopping-cart'
-        },
-        inventoryValue: {
-          value: 84320.00,
-          label: "Inventory Value",
-          changePercent: 3.7,
-          changeDirection: 'up',
-          icon: 'boxes'
-        }
+      revenueStats: {
+        totalRevenue: 128430.50,
+        openInvoices: 15,
+        paidInvoices: 32,
+        overdueInvoices: 3
+      },
+      inventoryStats: {
+        totalProducts: totalProducts,
+        lowStockProducts: 5,
+        outOfStockProducts: 2,
+        inventoryValue: 84320.00
+      },
+      contactsStats: {
+        totalCustomers: Math.floor(totalContacts * 0.7), // Assuming about 70% of contacts are customers
+        totalVendors: Math.floor(totalContacts * 0.3), // Assuming about 30% of contacts are vendors
+        totalReceivable: 42150.75,
+        totalPayable: 31875.24
       },
       recentActivity: [
         {

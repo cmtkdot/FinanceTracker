@@ -1,8 +1,9 @@
 import { Product } from "./schema";
 
 export interface PortalAuthRequest {
-  accountIdentifier: string; // can be contact UID or email
+  contactIdentifier: string; // can be contact UID or email
   pin: string;
+  accountIdentifier?: string; // Legacy support, will be removed in future
 }
 
 export interface ProductWithInventory extends Product {
