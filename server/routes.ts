@@ -114,7 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    const wasAuthenticated = req.requireAuth();
+    const wasAuthenticated = req.isAuthenticated();
     const sessionID = req.sessionID;
     
     req.logout((err) => {
@@ -130,13 +130,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/auth/session", (req, res) => {
     console.log("Session check:", { 
-      authenticated: req.requireAuth(),
+      authenticated: req.isAuthenticated(),
       sessionID: req.sessionID,
       hasSession: !!req.session,
       user: req.user ? { id: req.user.id } : null
     });
     
-    if (req.requireAuth()) {
+    if (req.isAuthenticated()) {
       // Return user without sensitive fields
       const { password, ...userWithoutPassword } = req.user as any;
       res.json({ user: userWithoutPassword });
