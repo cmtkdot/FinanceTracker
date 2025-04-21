@@ -203,7 +203,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(summary);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      res.status(500).json({ message: "Failed to fetch dashboard data" });
+      // Send more detailed error information for debugging
+      res.status(500).json({ 
+        message: "Failed to fetch dashboard data",
+        error: error.message || "Unknown error"
+      });
     }
   });
 

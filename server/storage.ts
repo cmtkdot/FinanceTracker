@@ -1227,9 +1227,9 @@ export class DatabaseStorage implements IStorage {
       const lowStockResult = await db.select({ count: sql`count(*)` }).from(products)
         .where(
           and(
-            sql`reorder_level IS NOT NULL`,
-            sql`stock_quantity IS NOT NULL`,
-            sql`stock_quantity <= reorder_level`
+            isNotNull(products.reorderLevel),
+            isNotNull(products.stockQuantity),
+            sql`${products.stockQuantity} <= ${products.reorderLevel}`
           )
         );
       const lowStockProducts = Number(lowStockResult[0]?.count || 0);
