@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useLocation } from "wouter"
 import { Button } from "@/components/ui/button"
 import {
@@ -46,20 +46,14 @@ export default function AuthPage() {
   useEffect(() => {
     const verifyLoggedIn = async () => {
       const isAuthenticated = await checkAuth();
-      if (isAuthenticated) {
+      if (isAuthenticated || user) {
         console.log("User is already authenticated, redirecting to dashboard");
         setLocation("/dashboard");
       }
     };
     
     verifyLoggedIn();
-  }, [checkAuth, setLocation]);
-  
-  // If user is already logged in, redirect to dashboard
-  if (user) {
-    setLocation("/dashboard");
-    return null;
-  }
+  }, [checkAuth, setLocation, user]);
   
   // Initialize the login form
   const loginForm = useForm<LoginFormValues>({
