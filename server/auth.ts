@@ -5,12 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import connectPgSimple from 'connect-pg-simple';
 import { IncomingMessage } from 'http';
-import { pool } from './db';
-
-// Type declaration for bcrypt
-declare module 'bcrypt';
 
 // Add declaration for express-session to include portalAccount property
 declare module 'express-session' {
@@ -69,8 +64,8 @@ export function configurePassport() {
  * Configure express session
  */
 export function configureSession(app: any) {
-  // Configure session with PostgreSQL store for better persistence
-  const PostgreSqlStore = connectPgSimple(session);
+  // Use the session store from our storage implementation
+  // that was configured in DatabaseStorage
   
   // Set the secure cookie flag based on environment and add sameSite option
   const sessionOptions = {
@@ -83,17 +78,13 @@ export function configureSession(app: any) {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       sameSite: 'lax' as const // Allows the cookie to be sent with same-site navigation and top-level requests
     },
-    store: new PostgreSqlStore({
-      pool,
-      tableName: 'session', // Use the default table name
-      createTableIfMissing: true // Create the session table if it doesn't exist
-    })
+    store: storage.sessionStore // Use the session store from our DatabaseStorage
   };
   
   console.log("Session configuration:", {
     ...sessionOptions,
     secret: "[REDACTED]",
-    store: "PostgreSqlStore"
+    store: "DatabaseStorage.sessionStore"
   });
   
   app.use(session(sessionOptions));

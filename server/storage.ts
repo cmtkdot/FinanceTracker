@@ -11,14 +11,20 @@ import {
   type Expense, type InsertExpense, type Message, type InsertMessage,
   type PortalAccess, type InsertPortalAccess
 } from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, and, or, desc, isNull, count, sql, not, isNotNull } from "drizzle-orm";
 import { DashboardSummary, AccountWithBalances, ProductWithInventory } from "@shared/types";
 import { createId } from '@paralleldrive/cuid2';
 import { hash, compare } from 'bcrypt';
 import axios from 'axios';
 
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+
 export interface IStorage {
+  // Session store for persistent sessions
+  sessionStore: session.Store;
+  
   // User methods
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -141,6 +147,18 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+  
+  constructor() {
+    // Create PostgreSQL session store
+    const PostgresStore = connectPgSimple(session);
+    this.sessionStore = new PostgresStore({
+      pool, // Use the existing database pool
+      tableName: 'session', // Default session table name
+      createTableIfMissing: true, // Create table if it doesn't exist
+    });
+  }
+  
   // User methods
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
