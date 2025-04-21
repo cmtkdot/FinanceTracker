@@ -1,13 +1,13 @@
 import { 
-  users, accounts, products, estimates, estimateLineItems, invoices, 
+  users, contacts, products, estimates, estimateLineItems, invoices, 
   invoiceLineItems, purchaseOrders, purchaseOrderLines, customerPayments, 
-  vendorPayments, customerCredits, expenses, messages, portalAccess, pdfQueue,
-  type User, type InsertUser, type Account, type InsertAccount,
+  purchaseOrderPayments, estimateCredits, expenses, messages, portalAccess, pdfQueue,
+  type User, type InsertUser, type Contact, type InsertContact,
   type Product, type InsertProduct, type Estimate, type InsertEstimate,
   type EstimateLineItem, type InsertEstimateLineItem, type Invoice, type InsertInvoice,
   type InvoiceLineItem, type InsertInvoiceLineItem, type PurchaseOrder, type InsertPurchaseOrder,
   type PurchaseOrderLine, type InsertPurchaseOrderLine, type CustomerPayment, type InsertCustomerPayment,
-  type VendorPayment, type InsertVendorPayment, type CustomerCredit, type InsertCustomerCredit,
+  type PurchaseOrderPayment, type InsertPurchaseOrderPayment, type EstimateCredit, type InsertEstimateCredit,
   type Expense, type InsertExpense, type Message, type InsertMessage,
   type PortalAccess, type InsertPortalAccess
 } from "@shared/schema";
@@ -25,14 +25,14 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   verifyUserPassword(email: string, password: string): Promise<User | null>;
 
-  // Account methods
-  getAccounts(filters?: { isCustomer?: boolean, isVendor?: boolean }): Promise<Account[]>;
-  getAccountById(id: string): Promise<Account | undefined>;
-  getAccountByGlideRowId(glideRowId: string): Promise<Account | undefined>;
-  getAccountByUid(accountUid: string): Promise<Account | undefined>;
-  createAccount(account: InsertAccount): Promise<Account>;
-  updateAccount(id: string, account: Partial<Account>): Promise<Account | undefined>;
-  deleteAccount(id: string): Promise<boolean>;
+  // Contact methods (renamed from Account)
+  getContacts(filters?: { isCustomer?: boolean, isVendor?: boolean }): Promise<Contact[]>;
+  getContactById(id: string): Promise<Contact | undefined>;
+  getContactByGlideRowId(glideRowId: string): Promise<Contact | undefined>;
+  getContactByUid(contactUid: string): Promise<Contact | undefined>;
+  createContact(contact: InsertContact): Promise<Contact>;
+  updateContact(id: string, contact: Partial<Contact>): Promise<Contact | undefined>;
+  deleteContact(id: string): Promise<boolean>;
   
   // Product methods
   getProducts(): Promise<Product[]>;
@@ -93,22 +93,22 @@ export interface IStorage {
   updateCustomerPayment(id: string, payment: Partial<CustomerPayment>): Promise<CustomerPayment | undefined>;
   deleteCustomerPayment(id: string): Promise<boolean>;
   
-  // Vendor Payment methods
-  getVendorPayments(): Promise<VendorPayment[]>;
-  getVendorPaymentById(id: string): Promise<VendorPayment | undefined>;
-  getVendorPaymentsByPurchaseOrderId(purchaseOrderId: string): Promise<VendorPayment[]>;
-  createVendorPayment(payment: InsertVendorPayment): Promise<VendorPayment>;
-  updateVendorPayment(id: string, payment: Partial<VendorPayment>): Promise<VendorPayment | undefined>;
-  deleteVendorPayment(id: string): Promise<boolean>;
+  // Purchase Order Payment methods (renamed from Vendor Payment)
+  getPurchaseOrderPayments(): Promise<PurchaseOrderPayment[]>;
+  getPurchaseOrderPaymentById(id: string): Promise<PurchaseOrderPayment | undefined>;
+  getPurchaseOrderPaymentsByPurchaseOrderId(purchaseOrderId: string): Promise<PurchaseOrderPayment[]>;
+  createPurchaseOrderPayment(payment: InsertPurchaseOrderPayment): Promise<PurchaseOrderPayment>;
+  updatePurchaseOrderPayment(id: string, payment: Partial<PurchaseOrderPayment>): Promise<PurchaseOrderPayment | undefined>;
+  deletePurchaseOrderPayment(id: string): Promise<boolean>;
   
-  // Customer Credit methods
-  getCustomerCredits(): Promise<CustomerCredit[]>;
-  getCustomerCreditById(id: string): Promise<CustomerCredit | undefined>;
-  getCustomerCreditsByInvoiceId(invoiceId: string): Promise<CustomerCredit[]>;
-  getCustomerCreditsByEstimateId(estimateId: string): Promise<CustomerCredit[]>;
-  createCustomerCredit(credit: InsertCustomerCredit): Promise<CustomerCredit>;
-  updateCustomerCredit(id: string, credit: Partial<CustomerCredit>): Promise<CustomerCredit | undefined>;
-  deleteCustomerCredit(id: string): Promise<boolean>;
+  // Estimate Credit methods (renamed from Customer Credit)
+  getEstimateCredits(): Promise<EstimateCredit[]>;
+  getEstimateCreditById(id: string): Promise<EstimateCredit | undefined>;
+  getEstimateCreditsByInvoiceId(invoiceId: string): Promise<EstimateCredit[]>;
+  getEstimateCreditsByEstimateId(estimateId: string): Promise<EstimateCredit[]>;
+  createEstimateCredit(credit: InsertEstimateCredit): Promise<EstimateCredit>;
+  updateEstimateCredit(id: string, credit: Partial<EstimateCredit>): Promise<EstimateCredit | undefined>;
+  deleteEstimateCredit(id: string): Promise<boolean>;
   
   // Expense methods
   getExpenses(): Promise<Expense[]>;
@@ -125,10 +125,10 @@ export interface IStorage {
   deleteMessage(id: string): Promise<boolean>;
   
   // Portal Access methods
-  getPortalAccessByAccountId(accountId: string): Promise<PortalAccess | undefined>;
+  getPortalAccessByContactId(contactId: string): Promise<PortalAccess | undefined>;
   createPortalAccess(access: InsertPortalAccess): Promise<PortalAccess>;
   updatePortalAccess(id: string, access: Partial<PortalAccess>): Promise<PortalAccess | undefined>;
-  validatePortalPIN(accountId: string, pin: string): Promise<boolean>;
+  validatePortalPIN(contactId: string, pin: string): Promise<boolean>;
   
   // Dashboard data
   getDashboardSummary(): Promise<DashboardSummary>;

@@ -18,11 +18,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   expenses: many(expenses),
 }));
 
-// Accounts table (Clients/Vendors)
-export const accounts = pgTable("accounts", {
+// Contacts table (Clients/Vendors) - renamed from accounts
+export const contacts = pgTable("contacts", {
   id: uuid("id").primaryKey().defaultRandom(),
   glideRowId: text("glide_row_id").unique(),
-  accountUid: text("account_uid").unique(),
+  contactUid: text("contact_uid").unique(), // renamed from accountUid
   name: text("name").notNull(),
   email: text("email"),
   phone: text("phone"),
@@ -37,13 +37,13 @@ export const accounts = pgTable("accounts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const accountsRelations = relations(accounts, ({ many }) => ({
+export const contactsRelations = relations(contacts, ({ many }) => ({
   estimates: many(estimates),
   invoices: many(invoices),
   purchaseOrders: many(purchaseOrders),
   customerPayments: many(customerPayments),
-  vendorPayments: many(vendorPayments),
-  customerCredits: many(customerCredits),
+  purchaseOrderPayments: many(purchaseOrderPayments), // renamed from vendorPayments
+  estimateCredits: many(estimateCredits), // renamed from customerCredits
   products: many(products),
 }));
 
@@ -59,7 +59,7 @@ export const products = pgTable("products", {
   unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
   stockQuantity: integer("stock_quantity").default(0),
   reorderLevel: integer("reorder_level").default(5),
-  vendorId: uuid("vendor_id").references(() => accounts.id),
+  vendorId: uuid("vendor_id").references(() => contacts.id),
   rowid_vendor: text("rowid_vendor"),
   publicUrlPhoto: text("public_url_photo"),
   publicUrlVideo: text("public_url_video"),
@@ -68,14 +68,14 @@ export const products = pgTable("products", {
 });
 
 export const productsRelations = relations(products, ({ one, many }) => ({
-  vendor: one(accounts, {
+  vendor: one(contacts, {
     fields: [products.vendorId],
-    references: [accounts.id],
+    references: [contacts.id],
   }),
   estimateLineItems: many(estimateLineItems),
   invoiceLineItems: many(invoiceLineItems),
   purchaseOrderLines: many(purchaseOrderLines),
-  vendorPayments: many(vendorPayments),
+  purchaseOrderPayments: many(purchaseOrderPayments),
   messages: many(messages),
 }));
 
@@ -84,8 +84,8 @@ export const estimates = pgTable("estimates", {
   id: uuid("id").primaryKey().defaultRandom(),
   glideRowId: text("glide_row_id").unique(),
   estimateUid: text("estimate_uid").unique(),
-  accountId: uuid("account_id").references(() => accounts.id).notNull(),
-  rowid_account: text("rowid_account"),
+  contactId: uuid("contact_id").references(() => contacts.id).notNull(), // renamed from accountId
+  rowid_contact: text("rowid_contact"), // renamed from rowid_account
   issueDate: timestamp("issue_date").defaultNow().notNull(),
   expiryDate: timestamp("expiry_date"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).default("0"),
@@ -100,16 +100,16 @@ export const estimates = pgTable("estimates", {
 });
 
 export const estimatesRelations = relations(estimates, ({ one, many }) => ({
-  account: one(accounts, {
-    fields: [estimates.accountId],
-    references: [accounts.id],
+  contact: one(contacts, { // renamed from account
+    fields: [estimates.contactId], // renamed from accountId
+    references: [contacts.id], // renamed from accounts.id
   }),
   invoice: one(invoices, {
     fields: [estimates.invoiceId],
     references: [invoices.id],
   }),
   lineItems: many(estimateLineItems),
-  credits: many(customerCredits),
+  credits: many(estimateCredits), // renamed from customerCredits
 }));
 
 // Estimate Line Items table
@@ -145,8 +145,8 @@ export const invoices = pgTable("invoices", {
   id: uuid("id").primaryKey().defaultRandom(),
   glideRowId: text("glide_row_id").unique(),
   invoiceUid: text("invoice_uid").unique(),
-  accountId: uuid("account_id").references(() => accounts.id).notNull(),
-  rowid_account: text("rowid_account"),
+  contactId: uuid("contact_id").references(() => contacts.id).notNull(), // renamed from accountId
+  rowid_contact: text("rowid_contact"), // renamed from rowid_account
   estimateId: uuid("estimate_id").references(() => estimates.id),
   rowid_estimate: text("rowid_estimate"),
   issueDate: timestamp("issue_date").defaultNow().notNull(),
@@ -162,9 +162,9 @@ export const invoices = pgTable("invoices", {
 });
 
 export const invoicesRelations = relations(invoices, ({ one, many }) => ({
-  account: one(accounts, {
-    fields: [invoices.accountId],
-    references: [accounts.id],
+  contact: one(contacts, { // renamed from account
+    fields: [invoices.contactId], // renamed from accountId
+    references: [contacts.id], // renamed from accounts.id
   }),
   estimate: one(estimates, {
     fields: [invoices.estimateId],
@@ -172,7 +172,7 @@ export const invoicesRelations = relations(invoices, ({ one, many }) => ({
   }),
   lineItems: many(invoiceLineItems),
   payments: many(customerPayments),
-  credits: many(customerCredits),
+  credits: many(estimateCredits), // renamed from customerCredits
 }));
 
 // Invoice Line Items table
@@ -208,8 +208,8 @@ export const purchaseOrders = pgTable("purchase_orders", {
   id: uuid("id").primaryKey().defaultRandom(),
   glideRowId: text("glide_row_id").unique(),
   poUid: text("po_uid").unique(),
-  accountId: uuid("account_id").references(() => accounts.id).notNull(),
-  rowid_account: text("rowid_account"),
+  contactId: uuid("contact_id").references(() => contacts.id).notNull(), // renamed from accountId
+  rowid_contact: text("rowid_contact"), // renamed from rowid_account
   issueDate: timestamp("issue_date").defaultNow().notNull(),
   expectedDate: timestamp("expected_date"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).default("0"),
@@ -223,12 +223,12 @@ export const purchaseOrders = pgTable("purchase_orders", {
 });
 
 export const purchaseOrdersRelations = relations(purchaseOrders, ({ one, many }) => ({
-  account: one(accounts, {
-    fields: [purchaseOrders.accountId],
-    references: [accounts.id],
+  contact: one(contacts, { // renamed from account
+    fields: [purchaseOrders.contactId], // renamed from accountId
+    references: [contacts.id], // renamed from accounts.id
   }),
   lines: many(purchaseOrderLines),
-  payments: many(vendorPayments),
+  payments: many(purchaseOrderPayments), // renamed from vendorPayments
 }));
 
 // Purchase Order Lines table
@@ -262,8 +262,8 @@ export const purchaseOrderLinesRelations = relations(purchaseOrderLines, ({ one 
 export const customerPayments = pgTable("customer_payments", {
   id: uuid("id").primaryKey().defaultRandom(),
   glideRowId: text("glide_row_id").unique(),
-  accountId: uuid("account_id").references(() => accounts.id).notNull(),
-  rowid_account: text("rowid_account"),
+  contactId: uuid("contact_id").references(() => contacts.id).notNull(), // renamed from accountId
+  rowid_contact: text("rowid_contact"), // renamed from rowid_account
   invoiceId: uuid("invoice_id").references(() => invoices.id).notNull(),
   rowid_invoice: text("rowid_invoice"),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
@@ -276,9 +276,9 @@ export const customerPayments = pgTable("customer_payments", {
 });
 
 export const customerPaymentsRelations = relations(customerPayments, ({ one }) => ({
-  account: one(accounts, {
-    fields: [customerPayments.accountId],
-    references: [accounts.id],
+  contact: one(contacts, { // renamed from account
+    fields: [customerPayments.contactId], // renamed from accountId
+    references: [contacts.id], // renamed from accounts.id
   }),
   invoice: one(invoices, {
     fields: [customerPayments.invoiceId],
@@ -286,12 +286,12 @@ export const customerPaymentsRelations = relations(customerPayments, ({ one }) =
   }),
 }));
 
-// Vendor Payments table
-export const vendorPayments = pgTable("vendor_payments", {
+// Purchase Order Payments table (renamed from Vendor Payments)
+export const purchaseOrderPayments = pgTable("purchase_order_payments", {
   id: uuid("id").primaryKey().defaultRandom(),
   glideRowId: text("glide_row_id").unique(),
-  accountId: uuid("account_id").references(() => accounts.id).notNull(),
-  rowid_account: text("rowid_account"),
+  contactId: uuid("contact_id").references(() => contacts.id).notNull(), // renamed from accountId
+  rowid_contact: text("rowid_contact"), // renamed from rowid_account
   purchaseOrderId: uuid("purchase_order_id").references(() => purchaseOrders.id).notNull(),
   rowid_purchase_order: text("rowid_purchase_order"),
   productId: uuid("product_id").references(() => products.id),
@@ -304,27 +304,27 @@ export const vendorPayments = pgTable("vendor_payments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const vendorPaymentsRelations = relations(vendorPayments, ({ one }) => ({
-  account: one(accounts, {
-    fields: [vendorPayments.accountId],
-    references: [accounts.id],
+export const purchaseOrderPaymentsRelations = relations(purchaseOrderPayments, ({ one }) => ({
+  contact: one(contacts, { // renamed from account
+    fields: [purchaseOrderPayments.contactId], // renamed from accountId
+    references: [contacts.id], // renamed from accounts.id
   }),
   purchaseOrder: one(purchaseOrders, {
-    fields: [vendorPayments.purchaseOrderId],
+    fields: [purchaseOrderPayments.purchaseOrderId],
     references: [purchaseOrders.id],
   }),
   product: one(products, {
-    fields: [vendorPayments.productId],
+    fields: [purchaseOrderPayments.productId],
     references: [products.id],
   }),
 }));
 
-// Customer Credits table
-export const customerCredits = pgTable("customer_credits", {
+// Estimate Credits table (renamed from Customer Credits)
+export const estimateCredits = pgTable("estimate_credits", {
   id: uuid("id").primaryKey().defaultRandom(),
   glideRowId: text("glide_row_id").unique(),
-  accountId: uuid("account_id").references(() => accounts.id).notNull(),
-  rowid_account: text("rowid_account"),
+  contactId: uuid("contact_id").references(() => contacts.id).notNull(), // renamed from accountId
+  rowid_contact: text("rowid_contact"), // renamed from rowid_account
   invoiceId: uuid("invoice_id").references(() => invoices.id),
   rowid_invoice: text("rowid_invoice"),
   estimateId: uuid("estimate_id").references(() => estimates.id),
@@ -336,17 +336,17 @@ export const customerCredits = pgTable("customer_credits", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const customerCreditsRelations = relations(customerCredits, ({ one }) => ({
-  account: one(accounts, {
-    fields: [customerCredits.accountId],
-    references: [accounts.id],
+export const estimateCreditsRelations = relations(estimateCredits, ({ one }) => ({
+  contact: one(contacts, { // renamed from account
+    fields: [estimateCredits.contactId], // renamed from accountId
+    references: [contacts.id], // renamed from accounts.id
   }),
   invoice: one(invoices, {
-    fields: [customerCredits.invoiceId],
+    fields: [estimateCredits.invoiceId],
     references: [invoices.id],
   }),
   estimate: one(estimates, {
-    fields: [customerCredits.estimateId],
+    fields: [estimateCredits.estimateId],
     references: [estimates.id],
   }),
 }));
@@ -397,7 +397,7 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 // PIN Access for secure customer/vendor portal
 export const portalAccess = pgTable("portal_access", {
   id: uuid("id").primaryKey().defaultRandom(),
-  accountId: uuid("account_id").references(() => accounts.id).notNull(),
+  contactId: uuid("contact_id").references(() => contacts.id).notNull(), // renamed from accountId
   pin: varchar("pin", { length: 6 }).notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -405,9 +405,9 @@ export const portalAccess = pgTable("portal_access", {
 });
 
 export const portalAccessRelations = relations(portalAccess, ({ one }) => ({
-  account: one(accounts, {
-    fields: [portalAccess.accountId],
-    references: [accounts.id],
+  contact: one(contacts, { // renamed from account
+    fields: [portalAccess.contactId], // renamed from accountId
+    references: [contacts.id], // renamed from accounts.id
   }),
 }));
 
@@ -431,9 +431,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true 
 });
 
-export const insertAccountSchema = createInsertSchema(accounts).omit({ 
+export const insertContactSchema = createInsertSchema(contacts).omit({ 
   id: true, 
-  accountUid: true, 
+  contactUid: true, 
   customerBalance: true, 
   vendorBalance: true, 
   netBalance: true, 
@@ -511,13 +511,13 @@ export const insertCustomerPaymentSchema = createInsertSchema(customerPayments).
   updatedAt: true 
 });
 
-export const insertVendorPaymentSchema = createInsertSchema(vendorPayments).omit({ 
+export const insertPurchaseOrderPaymentSchema = createInsertSchema(purchaseOrderPayments).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
 });
 
-export const insertCustomerCreditSchema = createInsertSchema(customerCredits).omit({ 
+export const insertEstimateCreditSchema = createInsertSchema(estimateCredits).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
@@ -545,8 +545,8 @@ export const insertPortalAccessSchema = createInsertSchema(portalAccess).omit({
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
-export type Account = typeof accounts.$inferSelect;
-export type InsertAccount = z.infer<typeof insertAccountSchema>;
+export type Contact = typeof contacts.$inferSelect;
+export type InsertContact = z.infer<typeof insertContactSchema>;
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -572,11 +572,11 @@ export type InsertPurchaseOrderLine = z.infer<typeof insertPurchaseOrderLineSche
 export type CustomerPayment = typeof customerPayments.$inferSelect;
 export type InsertCustomerPayment = z.infer<typeof insertCustomerPaymentSchema>;
 
-export type VendorPayment = typeof vendorPayments.$inferSelect;
-export type InsertVendorPayment = z.infer<typeof insertVendorPaymentSchema>;
+export type PurchaseOrderPayment = typeof purchaseOrderPayments.$inferSelect;
+export type InsertPurchaseOrderPayment = z.infer<typeof insertPurchaseOrderPaymentSchema>;
 
-export type CustomerCredit = typeof customerCredits.$inferSelect;
-export type InsertCustomerCredit = z.infer<typeof insertCustomerCreditSchema>;
+export type EstimateCredit = typeof estimateCredits.$inferSelect;
+export type InsertEstimateCredit = z.infer<typeof insertEstimateCreditSchema>;
 
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;

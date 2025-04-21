@@ -7,7 +7,7 @@ import { webhookService } from "./webhooks";
 import { z } from "zod";
 import {
   insertUserSchema,
-  insertAccountSchema,
+  insertContactSchema, // renamed from insertAccountSchema
   insertProductSchema,
   insertEstimateSchema,
   insertEstimateLineItemSchema,
@@ -16,8 +16,8 @@ import {
   insertPurchaseOrderSchema,
   insertPurchaseOrderLineSchema,
   insertCustomerPaymentSchema,
-  insertVendorPaymentSchema,
-  insertCustomerCreditSchema,
+  insertPurchaseOrderPaymentSchema, // renamed from insertVendorPaymentSchema
+  insertEstimateCreditSchema, // renamed from insertCustomerCreditSchema
   insertExpenseSchema,
   insertMessageSchema,
 } from "@shared/schema";
@@ -54,31 +54,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { accountIdentifier, pin } = req.body as PortalAuthRequest;
 
-      // Try to find account by UID first, then by email
-      let account = await storage.getAccountByUid(accountIdentifier);
-      if (!account) {
-        const accounts = await storage.getAccounts();
-        account = accounts.find(a => a.email === accountIdentifier);
+      // Try to find contact by UID first, then by email
+      let contact = await storage.getContactByUid(accountIdentifier); // renamed from getAccountByUid
+      if (!contact) {
+        const contacts = await storage.getContacts(); // renamed from getAccounts
+        contact = contacts.find(c => c.email === accountIdentifier);
       }
 
-      if (!account) {
-        return res.status(400).json({ message: "Account not found" });
+      if (!contact) {
+        return res.status(400).json({ message: "Contact not found" }); // renamed from Account
       }
 
-      const isValid = await storage.validatePortalPIN(account.id, pin);
+      const isValid = await storage.validatePortalPIN(contact.id, pin);
       if (!isValid) {
         return res.status(401).json({ message: "Invalid PIN" });
       }
 
-      // Store account in session
-      req.session.portalAccount = account;
+      // Store contact in session
+      req.session.portalContact = contact; // renamed from portalAccount
       
       res.json({ 
         success: true, 
-        account: {
-          id: account.id,
-          name: account.name,
-          accountUid: account.accountUid
+        contact: { // renamed from account
+          id: contact.id,
+          name: contact.name,
+          contactUid: contact.contactUid // renamed from accountUid
         } 
       });
     } catch (error) {
@@ -165,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/accounts", isAuthenticated, async (req, res) => {
     try {
-      const validatedData = insertAccountSchema.parse(req.body);
+      const validatedData = insertContactSchema.parse(req.body); // renamed from insertAccountSchema
       const account = await storage.createAccount(validatedData);
       res.status(201).json(account);
     } catch (error) {
@@ -539,9 +539,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Vendor Payment Routes
-  app.get("/api/vendor-payments", isAuthenticated, async (req, res) => {
+  app.get("/api/purchase-order-payments", isAuthenticated, async (req, res) => {
     try {
-      const payments = await storage.getVendorPayments();
+      const payments = await storage.getPurchaseOrderPayments(); // renamed from getVendorPayments
       res.json(payments);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -550,37 +550,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/purchase-orders/:id/payments", isAuthenticated, async (req, res) => {
     try {
-      const payments = await storage.getVendorPaymentsByPurchaseOrderId(req.params.id);
+      const payments = await storage.getPurchaseOrderPaymentsByPurchaseOrderId(req.params.id); // renamed from getVendorPaymentsByPurchaseOrderId
       res.json(payments);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post("/api/vendor-payments", isAuthenticated, async (req, res) => {
+  app.post("/api/purchase-order-payments", isAuthenticated, async (req, res) => {
     try {
-      const validatedData = insertVendorPaymentSchema.parse(req.body);
-      const payment = await storage.createVendorPayment(validatedData);
+      const validatedData = insertPurchaseOrderPaymentSchema.parse(req.body); // renamed from insertVendorPaymentSchema
+      const payment = await storage.createPurchaseOrderPayment(validatedData); // renamed from createVendorPayment
       res.status(201).json(payment);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
   });
 
-  // Customer Credit Routes
-  app.get("/api/customer-credits", isAuthenticated, async (req, res) => {
+  // Estimate Credits Routes (renamed from Customer Credit Routes)
+  app.get("/api/estimate-credits", isAuthenticated, async (req, res) => {
     try {
-      const credits = await storage.getCustomerCredits();
+      const credits = await storage.getEstimateCredits(); // renamed from getCustomerCredits
       res.json(credits);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post("/api/customer-credits", isAuthenticated, async (req, res) => {
+  app.post("/api/estimate-credits", isAuthenticated, async (req, res) => {
     try {
-      const validatedData = insertCustomerCreditSchema.parse(req.body);
-      const credit = await storage.createCustomerCredit(validatedData);
+      const validatedData = insertEstimateCreditSchema.parse(req.body); // renamed from insertCustomerCreditSchema
+      const credit = await storage.createEstimateCredit(validatedData); // renamed from createCustomerCredit
       res.status(201).json(credit);
     } catch (error) {
       res.status(400).json({ message: error.message });
@@ -625,12 +625,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/portal/invoices", isPortalAuthenticated, async (req, res) => {
     try {
-      const accountId = req.session.portalAccount.id;
+      const contactId = req.session.portalAccount.id; // renamed from accountId
       const allInvoices = await storage.getInvoices();
-      const accountInvoices = allInvoices.filter(
-        (invoice) => invoice.accountId === accountId
+      const contactInvoices = allInvoices.filter( // renamed from accountInvoices
+        (invoice) => invoice.contactId === contactId // renamed from accountId
       );
-      res.json(accountInvoices);
+      res.json(contactInvoices);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -638,12 +638,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/portal/purchase-orders", isPortalAuthenticated, async (req, res) => {
     try {
-      const accountId = req.session.portalAccount.id;
+      const contactId = req.session.portalAccount.id; // renamed from accountId
       const allPOs = await storage.getPurchaseOrders();
-      const accountPOs = allPOs.filter(
-        (po) => po.accountId === accountId
+      const contactPOs = allPOs.filter( // renamed from accountPOs
+        (po) => po.contactId === contactId // renamed from accountId
       );
-      res.json(accountPOs);
+      res.json(contactPOs);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
