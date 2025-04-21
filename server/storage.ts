@@ -13,7 +13,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, isNull, count, sql, not, isNotNull } from "drizzle-orm";
-import { DashboardSummary, AccountWithBalances, ProductWithInventory } from "@shared/types";
+import { DashboardSummary, ProductWithInventory } from "@shared/types";
 import { createId } from '@paralleldrive/cuid2';
 import { hash, compare } from 'bcrypt';
 import axios from 'axios';
@@ -130,6 +130,9 @@ export interface IStorage {
   updatePortalAccess(id: string, access: Partial<PortalAccess>): Promise<PortalAccess | undefined>;
   validatePortalPIN(contactId: string, pin: string): Promise<boolean>;
   
+  // Legacy methods for backward compatibility
+  getPortalAccessByAccountId(accountId: string): Promise<PortalAccess | undefined>;
+  
   // Dashboard data
   getDashboardSummary(): Promise<DashboardSummary>;
 
@@ -174,88 +177,117 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  // Account methods
-  async getAccounts(filters?: { isCustomer?: boolean, isVendor?: boolean }): Promise<Account[]> {
-    let query = db.select().from(accounts);
+  // Contact methods (renamed from Account methods)
+  async getContacts(filters?: { isCustomer?: boolean, isVendor?: boolean }): Promise<Contact[]> {
+    let query = db.select().from(contacts);
     
     if (filters) {
       if (filters.isCustomer !== undefined && filters.isVendor !== undefined) {
         query = query.where(
           and(
-            eq(accounts.isCustomer, filters.isCustomer),
-            eq(accounts.isVendor, filters.isVendor)
+            eq(contacts.isCustomer, filters.isCustomer),
+            eq(contacts.isVendor, filters.isVendor)
           )
         );
       } else if (filters.isCustomer !== undefined) {
-        query = query.where(eq(accounts.isCustomer, filters.isCustomer));
+        query = query.where(eq(contacts.isCustomer, filters.isCustomer));
       } else if (filters.isVendor !== undefined) {
-        query = query.where(eq(accounts.isVendor, filters.isVendor));
+        query = query.where(eq(contacts.isVendor, filters.isVendor));
       }
     }
     
-    return await query.orderBy(accounts.name);
+    return await query.orderBy(contacts.name);
   }
 
-  async getAccountById(id: string): Promise<Account | undefined> {
-    const [account] = await db.select().from(accounts).where(eq(accounts.id, id));
-    return account;
+  async getContactById(id: string): Promise<Contact | undefined> {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
+    return contact;
   }
 
-  async getAccountByGlideRowId(glideRowId: string): Promise<Account | undefined> {
-    const [account] = await db.select().from(accounts).where(eq(accounts.glideRowId, glideRowId));
-    return account;
+  async getContactByGlideRowId(glideRowId: string): Promise<Contact | undefined> {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.glideRowId, glideRowId));
+    return contact;
   }
 
-  async getAccountByUid(accountUid: string): Promise<Account | undefined> {
-    const [account] = await db.select().from(accounts).where(eq(accounts.accountUid, accountUid));
-    return account;
+  async getContactByUid(contactUid: string): Promise<Contact | undefined> {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.contactUid, contactUid));
+    return contact;
   }
 
-  async createAccount(accountData: InsertAccount): Promise<Account> {
-    // Generate a unique account UID (e.g., ACC-XXXX)
+  async createContact(contactData: InsertContact): Promise<Contact> {
+    // Generate a unique contact UID (e.g., CON-XXXX)
     const uniqueId = createId().slice(0, 6).toUpperCase();
-    const accountUid = `ACC-${uniqueId}`;
+    const contactUid = `CON-${uniqueId}`;
 
-    const [account] = await db
-      .insert(accounts)
+    const [contact] = await db
+      .insert(contacts)
       .values({
-        ...accountData,
-        accountUid,
+        ...contactData,
+        contactUid,
       })
       .returning();
 
-    // After creating account, send webhook for external processing
-    await this.sendWebhook('accounts', account.id, 'INSERT', account);
+    // After creating contact, send webhook for external processing
+    await this.sendWebhook('contacts', contact.id, 'INSERT', contact);
     
-    return account;
+    return contact;
   }
 
-  async updateAccount(id: string, accountData: Partial<Account>): Promise<Account | undefined> {
-    const [account] = await db
-      .update(accounts)
+  async updateContact(id: string, contactData: Partial<Contact>): Promise<Contact | undefined> {
+    const [contact] = await db
+      .update(contacts)
       .set({
-        ...accountData,
+        ...contactData,
         updatedAt: new Date(),
       })
-      .where(eq(accounts.id, id))
+      .where(eq(contacts.id, id))
       .returning();
 
-    if (account) {
-      await this.sendWebhook('accounts', id, 'UPDATE', account);
+    if (contact) {
+      await this.sendWebhook('contacts', id, 'UPDATE', contact);
     }
     
-    return account;
+    return contact;
   }
 
-  async deleteAccount(id: string): Promise<boolean> {
-    const account = await this.getAccountById(id);
-    if (!account) return false;
+  async deleteContact(id: string): Promise<boolean> {
+    const contact = await this.getContactById(id);
+    if (!contact) return false;
 
-    await db.delete(accounts).where(eq(accounts.id, id));
+    await db.delete(contacts).where(eq(contacts.id, id));
     
-    await this.sendWebhook('accounts', id, 'DELETE', undefined, account);
+    await this.sendWebhook('contacts', id, 'DELETE', undefined, contact);
     
     return true;
+  }
+  
+  // Legacy methods for backward compatibility - redirect to new methods
+  async getAccounts(filters?: { isCustomer?: boolean, isVendor?: boolean }): Promise<any[]> {
+    return this.getContacts(filters);
+  }
+  
+  async getAccountById(id: string): Promise<any> {
+    return this.getContactById(id);
+  }
+  
+  async getAccountByGlideRowId(glideRowId: string): Promise<any> {
+    return this.getContactByGlideRowId(glideRowId);
+  }
+  
+  async getAccountByUid(accountUid: string): Promise<any> {
+    return this.getContactByUid(accountUid);
+  }
+  
+  async createAccount(accountData: any): Promise<any> {
+    return this.createContact(accountData);
+  }
+  
+  async updateAccount(id: string, accountData: any): Promise<any> {
+    return this.updateContact(id, accountData);
+  }
+  
+  async deleteAccount(id: string): Promise<boolean> {
+    return this.deleteContact(id);
   }
 
   // Product methods
