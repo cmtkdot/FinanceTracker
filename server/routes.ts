@@ -31,17 +31,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   configureSession(app);
 
   // Authentication Routes
-  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
-    res.json({ user: req.user });
+  app.post("/api/auth/login", (req, res, next) => {
+    console.log("Login attempt with:", { 
+      email: req.body.email,
+      hasPassword: !!req.body.password
+    });
+    
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error("Login error:", err);
+        return res.status(500).json({ message: "Internal server error during login" });
+      }
+      
+      if (!user) {
+        console.log("Authentication failed:", info);
+        return res.status(401).json({ message: info?.message || "Invalid credentials" });
+      }
+      
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Session creation error:", loginErr);
+          return res.status(500).json({ message: "Error creating session" });
+        }
+        
+        console.log("User authenticated successfully:", { 
+          id: user.id,
+          email: user.email,
+          sessionID: req.sessionID
+        });
+        
+        return res.json({ user });
+      });
+    })(req, res, next);
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    req.logout(() => {
+    const wasAuthenticated = req.isAuthenticated();
+    const sessionID = req.sessionID;
+    
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ message: "Error during logout" });
+      }
+      
+      console.log("User logged out:", { wasAuthenticated, sessionID });
       res.json({ success: true });
     });
   });
 
   app.get("/api/auth/session", (req, res) => {
+    console.log("Session check:", { 
+      authenticated: req.isAuthenticated(),
+      sessionID: req.sessionID,
+      hasSession: !!req.session,
+      user: req.user ? { id: req.user.id } : null
+    });
+    
     if (req.isAuthenticated()) {
       res.json({ user: req.user });
     } else {

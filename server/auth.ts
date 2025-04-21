@@ -6,6 +6,14 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import memorystore from 'memorystore';
+import { IncomingMessage } from 'http';
+
+// Add declaration for express-session to include portalAccount property
+declare module 'express-session' {
+  interface SessionData {
+    portalAccount?: any;
+  }
+}
 
 /**
  * Configure passport to use local strategy
@@ -61,23 +69,47 @@ export function configureSession(app: any) {
   // For this example, we're using memory store which is not suitable for production
   const MemoryStore = memorystore(session);
   
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || 'keyboard cat',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
-      },
-      store: new MemoryStore({
-        checkPeriod: 86400000, // prune expired entries every 24h
-      }),
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Set the secure cookie flag based on environment and add sameSite option
+  const sessionOptions = {
+    secret: process.env.SESSION_SECRET || 'keyboard_cat_finventory_secret_123',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Don't require HTTPS (even in production) for Replit environment
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: 'lax' as const // Allows the cookie to be sent with same-site navigation and top-level requests
+    },
+    store: new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
     })
-  );
-
+  };
+  
+  console.log("Session configuration:", {
+    ...sessionOptions,
+    secret: "[REDACTED]",
+    store: "MemoryStore"
+  });
+  
+  app.use(session(sessionOptions));
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Debug middleware to validate session is working
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path && req.path.includes('/api/auth')) {
+      console.log('Auth Request:', { 
+        path: req.path, 
+        authenticated: req.isAuthenticated(),
+        method: req.method,
+        hasSession: !!req.session,
+        sessionID: req.sessionID
+      });
+    }
+    next();
+  });
 }
 
 /**
