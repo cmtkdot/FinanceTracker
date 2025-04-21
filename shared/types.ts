@@ -1,5 +1,10 @@
 import { Product } from "./schema";
 
+export interface PortalAuthRequest {
+  accountIdentifier: string; // can be contact UID or email
+  pin: string;
+}
+
 export interface ProductWithInventory extends Product {
   stockAvailable?: number | null;
   stockOnOrder?: number | null;

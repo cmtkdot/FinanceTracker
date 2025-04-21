@@ -20,8 +20,16 @@ import {
   insertEstimateCreditSchema, // renamed from insertCustomerCreditSchema
   insertExpenseSchema,
   insertMessageSchema,
+  Contact
 } from "@shared/schema";
 import { PortalAuthRequest } from "@shared/types";
+
+// Add Contact type to express-session
+declare module 'express-session' {
+  interface SessionData {
+    portalContact?: Contact;
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
