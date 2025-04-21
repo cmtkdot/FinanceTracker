@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth-provider";
 
 // Define schema for login form
 const loginSchema = z.object({
@@ -28,7 +28,20 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
+  const { login, user, isLoading: authLoading, checkAuth } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      const isAuthenticated = await checkAuth();
+      if (isAuthenticated) {
+        navigate("/dashboard");
+      }
+    };
+    
+    checkAuthentication();
+  }, [navigate, checkAuth]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -41,22 +54,17 @@ export default function Login() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/auth/login", values);
-      const data = await response.json();
+      await login(values.email, values.password);
       
       toast({
         title: "Login Successful",
         description: "You have been logged in successfully.",
       });
       
-      // Make sure we have the user data before redirecting
-      if (data.user) {
-        console.log("Successfully logged in as:", data.user.email);
-        // Use a small timeout to ensure the toast is shown before redirecting
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 500);
-      }
+      // Use a small timeout to ensure the toast is shown before redirecting
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500);
     } catch (error) {
       console.error("Login error:", error);
       toast({

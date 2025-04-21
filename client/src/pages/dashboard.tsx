@@ -7,33 +7,35 @@ import { RecentInvoices } from "@/components/dashboard/recent-invoices";
 import { InventoryStatus } from "@/components/dashboard/inventory-status";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { DashboardSummary } from "@shared/types";
+import { DashboardSummary, ProductWithInventory } from "@shared/types";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
-
+  
+  const { 
+    data: dashboardData, 
+    isLoading, 
+    error 
+  } = useQuery<DashboardSummary>({
+    queryKey: ['/api/dashboard'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/dashboard");
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1
+  });
+  
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiRequest("GET", "/api/dashboard");
-        const data = await response.json();
-        setDashboardData(data);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load dashboard data. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [toast]);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
 
   if (isLoading) {
     return (
@@ -222,12 +224,29 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Invoices */}
         <div>
-          <RecentInvoices invoices={recentInvoicesData} />
+          <RecentInvoices 
+            invoices={recentInvoicesData}
+          />
         </div>
 
         {/* Inventory Status */}
         <div>
-          <InventoryStatus products={inventoryProductsData} />
+          <InventoryStatus 
+            products={inventoryProductsData.map(product => ({
+              ...product,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              glideRowId: null,
+              displayName: product.name,
+              unitCost: '0',
+              publicUrlDescription: null,
+              publicUrlVideo: null,
+              stockQuantity: product.stockAvailable,
+              stockValue: product.stockAvailable * product.unitPrice,
+              stockOnOrder: 0,
+              stockReserved: 0
+            }))} 
+          />
         </div>
       </div>
     </DashboardLayout>

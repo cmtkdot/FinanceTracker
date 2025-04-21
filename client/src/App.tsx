@@ -15,32 +15,24 @@ import Reports from "@/pages/reports";
 import Accounts from "@/pages/accounts";
 import PortalLogin from "@/pages/portal/login";
 import PortalDashboard from "@/pages/portal/index";
-import { useEffect, useState } from "react";
-import { apiRequest } from "./lib/queryClient";
+import { useEffect } from "react";
+import { AuthProvider, useAuth } from "@/hooks/use-auth-provider";
 
-function Router() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+function ProtectedRoute({ component: Component, ...rest }: { component: React.FC; path: string }) {
+  const { user, isLoading, checkAuth } = useAuth();
   const [location, setLocation] = useLocation();
 
-  // Add location to the dependency array to ensure the auth check runs when routes change
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await apiRequest("GET", "/api/auth/session");
-        const data = await response.json();
-        setIsAuthenticated(!!data.user);
-        console.log("Auth check - authenticated:", !!data.user);
-      } catch (error) {
-        console.log("Auth check - not authenticated");
-        setIsAuthenticated(false);
+    const verifyAuth = async () => {
+      const isAuthenticated = await checkAuth();
+      if (!isAuthenticated && !location.startsWith('/portal') && location !== '/login') {
+        setLocation('/login');
       }
     };
-    
-    checkAuth();
-  }, [location]); // Re-run when location changes
+    verifyAuth();
+  }, [location, checkAuth, setLocation]);
 
-  // Loading state while checking authentication
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -48,29 +40,43 @@ function Router() {
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated && location !== '/login' && !location.startsWith('/portal')) {
-    console.log("Not authenticated, redirecting to login");
-    // Use setTimeout to avoid React state update during render
-    setTimeout(() => {
-      setLocation('/login');
-    }, 0);
-    return null;
-  }
+  return <Component />;
+}
 
+function Router() {
   return (
     <Switch>
-      {/* Admin routes */}
+      {/* Public routes */}
       <Route path="/login" component={Login} />
-      <Route path="/" component={Dashboard} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/invoices" component={Invoices} />
-      <Route path="/estimates" component={Estimates} />
-      <Route path="/purchase-orders" component={PurchaseOrders} />
-      <Route path="/payments" component={Payments} />
-      <Route path="/products" component={Products} />
-      <Route path="/reports" component={Reports} />
-      <Route path="/accounts" component={Accounts} />
+      
+      {/* Protected admin routes */}
+      <Route path="/">
+        <ProtectedRoute path="/" component={Dashboard} />
+      </Route>
+      <Route path="/dashboard">
+        <ProtectedRoute path="/dashboard" component={Dashboard} />
+      </Route>
+      <Route path="/invoices">
+        <ProtectedRoute path="/invoices" component={Invoices} />
+      </Route>
+      <Route path="/estimates">
+        <ProtectedRoute path="/estimates" component={Estimates} />
+      </Route>
+      <Route path="/purchase-orders">
+        <ProtectedRoute path="/purchase-orders" component={PurchaseOrders} />
+      </Route>
+      <Route path="/payments">
+        <ProtectedRoute path="/payments" component={Payments} />
+      </Route>
+      <Route path="/products">
+        <ProtectedRoute path="/products" component={Products} />
+      </Route>
+      <Route path="/reports">
+        <ProtectedRoute path="/reports" component={Reports} />
+      </Route>
+      <Route path="/accounts">
+        <ProtectedRoute path="/accounts" component={Accounts} />
+      </Route>
       
       {/* Portal routes */}
       <Route path="/portal/login" component={PortalLogin} />
@@ -85,10 +91,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
