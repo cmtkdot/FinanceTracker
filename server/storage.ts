@@ -498,6 +498,14 @@ export class DatabaseStorage implements IStorage {
       .from(invoices)
       .orderBy(desc(invoices.issueDate));
   }
+  
+  async getRecentInvoices(limit: number = 5): Promise<Invoice[]> {
+    return await db
+      .select()
+      .from(invoices)
+      .orderBy(desc(invoices.issueDate))
+      .limit(limit);
+  }
 
   async getInvoiceById(id: string): Promise<Invoice | undefined> {
     const [invoice] = await db
