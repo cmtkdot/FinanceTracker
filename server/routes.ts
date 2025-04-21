@@ -31,6 +31,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   configureSession(app);
 
   // Authentication Routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      console.log("Registration attempt with:", { 
+        email: req.body.email,
+        hasPassword: !!req.body.password,
+        hasFullName: !!req.body.fullName
+      });
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(req.body.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+      
+      // Create the user
+      const newUser = await storage.createUser({
+        email: req.body.email,
+        password: req.body.password, // Storage layer will hash this
+        fullName: req.body.fullName,
+        role: req.body.role || "user"
+      });
+      
+      // Log in the user automatically
+      req.login(newUser, (loginErr) => {
+        if (loginErr) {
+          console.error("Error logging in after registration:", loginErr);
+          return res.status(500).json({ message: "Registration successful but failed to log in" });
+        }
+        
+        console.log("User registered and authenticated:", { 
+          id: newUser.id,
+          email: newUser.email
+        });
+        
+        // Return the user data without password
+        const { password, ...userWithoutPassword } = newUser;
+        return res.status(201).json({ user: userWithoutPassword });
+      });
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: error.message || "Failed to register user" });
+    }
+  });
+
   app.post("/api/auth/login", (req, res, next) => {
     console.log("Login attempt with:", { 
       email: req.body.email,
@@ -60,7 +104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sessionID: req.sessionID
         });
         
-        return res.json({ user });
+        // Return the user data without password
+        const { password, ...userWithoutPassword } = user;
+        return res.json({ user: userWithoutPassword });
       });
     })(req, res, next);
   });
@@ -89,7 +135,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     if (req.isAuthenticated()) {
-      res.json({ user: req.user });
+      // Return user without sensitive fields
+      const { password, ...userWithoutPassword } = req.user as any;
+      res.json({ user: userWithoutPassword });
     } else {
       res.status(401).json({ message: "Not authenticated" });
     }

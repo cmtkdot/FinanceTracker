@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import Login from "@/pages/login";
+import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
 import Invoices from "@/pages/invoices";
 import Estimates from "@/pages/estimates";
@@ -29,12 +29,12 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.FC
         const isAuthenticated = await checkAuth();
         setChecked(true);
         
-        if (!isAuthenticated && !location.startsWith('/portal') && location !== '/login') {
-          setLocation('/login');
+        if (!isAuthenticated && !location.startsWith('/portal') && location !== '/login' && location !== '/auth') {
+          setLocation('/auth');
         }
       } catch (error) {
         console.error("Authentication check failed:", error);
-        setLocation('/login');
+        setLocation('/auth');
       }
     };
     
@@ -56,7 +56,8 @@ function Router() {
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/login" component={Login} />
+      <Route path="/login" component={AuthPage} />
+      <Route path="/auth" component={AuthPage} />
       
       {/* Protected admin routes */}
       <Route path="/">
