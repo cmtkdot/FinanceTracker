@@ -1147,13 +1147,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Portal Access methods
-  async getPortalAccessByAccountId(accountId: string): Promise<PortalAccess | undefined> {
+  async getPortalAccessByContactId(contactId: string): Promise<PortalAccess | undefined> {
     const [access] = await db
       .select()
       .from(portalAccess)
       .where(
         and(
-          eq(portalAccess.accountId, accountId),
+          eq(portalAccess.contactId, contactId),
           eq(portalAccess.isActive, true)
         )
       );
@@ -1195,11 +1195,16 @@ export class DatabaseStorage implements IStorage {
     return access;
   }
 
-  async validatePortalPIN(accountId: string, pin: string): Promise<boolean> {
-    const access = await this.getPortalAccessByAccountId(accountId);
+  async validatePortalPIN(contactId: string, pin: string): Promise<boolean> {
+    const access = await this.getPortalAccessByContactId(contactId);
     if (!access) return false;
-
+    
     return compare(pin, access.pin);
+  }
+
+  // Legacy method for backward compatibility
+  async getPortalAccessByAccountId(accountId: string): Promise<PortalAccess | undefined> {
+    return this.getPortalAccessByContactId(accountId);
   }
 
   // Dashboard data
@@ -1209,7 +1214,7 @@ export class DatabaseStorage implements IStorage {
     // Get counts using Drizzle ORM's count function
     let totalInvoices = 0;
     let totalProducts = 0;
-    let totalAccounts = 0;
+    let totalContacts = 0;
     
     try {
       const invoiceResult = await db.select({ count: sql`count(*)` }).from(invoices);
@@ -1218,8 +1223,8 @@ export class DatabaseStorage implements IStorage {
       const productResult = await db.select({ count: sql`count(*)` }).from(products);
       totalProducts = Number(productResult[0]?.count || 0);
       
-      const accountResult = await db.select({ count: sql`count(*)` }).from(accounts);
-      totalAccounts = Number(accountResult[0]?.count || 0);
+      const contactResult = await db.select({ count: sql`count(*)` }).from(contacts);
+      totalContacts = Number(contactResult[0]?.count || 0);
     } catch (error) {
       console.error("Error counting records:", error);
     }

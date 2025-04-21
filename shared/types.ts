@@ -25,7 +25,7 @@ export interface DashboardSummary {
     outOfStockProducts: number;
     inventoryValue: number;
   };
-  accountsStats: {
+  contactsStats: {
     totalCustomers: number;
     totalVendors: number;
     totalReceivable: number;
